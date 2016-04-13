@@ -1,0 +1,25 @@
+{
+    "name": "lengow/php-quickstart",
+    "type": "library",
+    "description": "Zuora php-quickstart",
+    "keywords": [],
+    "homepage": "https://www.lengow.com",
+    "authors": [
+        {
+            "name": "Mathieu Sabourin",
+            "email": "mathieu.sabourin@lengow.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "classmap": [
+            "src/lib"
+        ],
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "minimum-stability": "dev"
+}
