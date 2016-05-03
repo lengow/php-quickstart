@@ -1,21 +1,21 @@
 #!/usr/bin/php
-<?php 
+<?php
 /*
  *    Copyright (c) 2010 Zuora, Inc.
- *    
- *    Permission is hereby granted, free of charge, to any person obtaining a copy of 
- *    this software and associated documentation files (the "Software"), to use copy, 
- *    modify, merge, publish the Software and to distribute, and sublicense copies of 
+ *
+ *    Permission is hereby granted, free of charge, to any person obtaining a copy of
+ *    this software and associated documentation files (the "Software"), to use copy,
+ *    modify, merge, publish the Software and to distribute, and sublicense copies of
  *    the Software, provided no fee is charged for the Software.  In addition the
  *    rights specified above are conditioned upon the following:
- *    
+ *
  *    The above copyright notice and this permission notice shall be included in all
  *    copies or substantial portions of the Software.
- *    
+ *
  *    Zuora, Inc. or any other trademarks of Zuora, Inc.  may not be used to endorse
  *    or promote products derived from this Software without specific prior written
  *    permission from Zuora, Inc.
- *    
+ *
  *    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *    FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
@@ -26,8 +26,8 @@
  *    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-error_reporting(E_ALL); 
-ini_set("display_errors", 1); 
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
 
 date_default_timezone_set('America/Los_Angeles');
 
@@ -218,29 +218,29 @@ print "\nGenerating Invoice...";
 $result = subscribe($instance, $ProductRatePlan,false,false);
 $success = $result->result->Success;
 $accountId = ($success ? $result->result->AccountId : "");
-if($accountId){	
+if($accountId){
 	$invoiceDate = date('Y-m-d\TH:i:s');
 	$targetDate = date('Y-m-d\TH:i:s', strtotime('+2 month', strtotime($invoiceDate)));
 	$result = generateInvoice($instance,$accountId,$invoiceDate,$targetDate);
 	$success = $result->result->Success;
 	$msg = ($success ? $result->result->Id : $result->result->Errors->Code . " (" . $result->result->Errors->Message.")");
 	print "\nInvoice Created: " . $msg . "\n";
-	
+
 	if($success){
 	  # QUERY Invoice
 	  $query = "SELECT Id, InvoiceNumber,Status FROM Invoice WHERE id = '".$result->result->Id."'";
 	  $records = queryAll($instance, $query);
 	  print "\nInvoice Queried ($query): " . $records[0]->InvoiceNumber ." ". $records[0]->Status . "\n";
-	  
+
 	  # POST Invoice
 	  $result = postInvoice($instance,$result->result->Id);
 	  $success = $result->result->Success;
-	  print "\nInvoice Posted :" .($result->result->Success ? "Success" : $result->result->Errors->Code . " (" . $result->result->Errors->Message.")"); 
-  
+	  print "\nInvoice Posted :" .($result->result->Success ? "Success" : $result->result->Errors->Code . " (" . $result->result->Errors->Message.")");
+
     if($success){
  		# DO PAYMENT
     	createAndApplyPayment($instance,$accountId);
-    }    
+    }
 	}
 }
 print "\n-------------------------------------------------------------------------------";
@@ -270,7 +270,7 @@ die();
 
 # method to create an active account. requires that you have:
 #
-#   1.) a gateway setup, 
+#   1.) a gateway setup,
 #   2.) gateway configured to not verify new credit cards
 #
 # if you want to verify a new credit card, make sure the card info
@@ -285,14 +285,14 @@ function createActiveAccount($instance, $name){
 
     # Create Contact on Account
     $zBillToContact = makeContact('Robert','Smith','4901 Morena Blvd',null,'San Diego','Virginia','United States','92117','robert@smith.com',null,$accountId);
-    
+
     $result = $instance->create(array($zBillToContact));
     $contactId = $result->result->Id;
 
     # Create Payment Method on Account
     $zPaymentMethod = makePaymentMethod('Firstly Lastly', '52 Vexford Lane',null, 'Anaheim', 'California', 'United States','22042', 'Visa', '5105105105105100', '12', '2012',$accountId);
-         
-    $result = $instance->create(array($zPaymentMethod));    
+
+    $result = $instance->create(array($zPaymentMethod));
     $paymentMethodId = $result->result->Id;
 
     # Update Account w/ Bill To/Sold To; also specify as active
@@ -332,22 +332,22 @@ function subscribe($instance, $ProductRatePlan,$GeneratePayments=true,$GenerateI
 
     $zBillToContact = makeContact('Robert','Smith','4901 Morena Blvd',null,'San Diego','Virginia','United States','92117','robert@smith.com',null);
 
-   
+
     $zSubscription = makeSubscription((isset($subscriptionName)?$subscriptionName:"Name".time()),null);
 
     $zSubscriptionData = makeSubscriptionData($zSubscription,array(),array(),$ProductRatePlanId);
-    
+
     $zSubscribeOptions = new Zuora_SubscribeOptions($GenerateInvoice,$GeneratePayments);
-     
+
     $result = $instance->subscribe($zAccount, $zSubscriptionData,$zBillToContact, $zPaymentMethod, $zSubscribeOptions);
 
     return $result;
-	
+
 }
 
 # make subscribe w/ existing call
 function subscribeWithExistingAccount($instance, $ProductRatePlan, $accountId,$GeneratePayments=true,$GenerateInvoice=true, $subscriptionName=null){
-    
+
     $ProductRatePlanId = $ProductRatePlan->Id;
 
     # SUBSCRIBE
@@ -368,9 +368,9 @@ function subscribeWithExistingAccount($instance, $ProductRatePlan, $accountId,$G
 }
 # upload some hard code sample usage info
 function uploadUsages($instance,$usages){
-	
+
 	$zUsages = array();
-	
+
 	foreach($usages as $usage){
 		$zUsage = new Zuora_Usage();
 		$zUsage->AccountId = $usage['AccountId'];
@@ -381,21 +381,21 @@ function uploadUsages($instance,$usages){
 	}
 	// please Iterate through the list of zUsages, 50 at a time
   $result = $instance->create($zUsages);
-	
+
 	return $result;
 }
 
 # generate an invoice
 function generateInvoice($instance,$accountId,$invoiceDate,$targetDate){
 	$zInvoices = array();
-	
+
 	$invoice = new Zuora_Invoice();
 	$invoice->AccountId = $accountId;
 	$invoice->InvoiceDate = $invoiceDate;
 	$invoice->TargetDate = $targetDate;
 
 	$zInvoices[] = $invoice;
-	
+
 	$result = $instance->generate($zInvoices);
 	return $result;
 }
@@ -405,7 +405,7 @@ function postInvoice($instance,$invoiceId){
   $invoice = new Zuora_Invoice();
 	$invoice->Id = $invoiceId;
 	$invoice->Status = 'Posted';
-	
+
 	$result = $instance->update(array($invoice));
 	return $result;
 }
@@ -416,14 +416,14 @@ function createAndApplyPayment($instance,$accountId){
  $records = queryAll($instance, $query);
  $paymentMethodId=$records[0]->Id;
  print "\nPaymentMethod Queried ($query): " . $records[0]->Id . "  " . $records[0]->Type;
- 
+
  # QUERY Invoice Balance
  $query = "select Id,Balance from Invoice where AccountId = '".$accountId."' and Balance>0";
  $records = queryAll($instance, $query);
  $amount = $records[0]->Balance;
  $invoiceId = $records[0]->Id;
  print "\nInvoice Balance Queried ($query): " . $records[0]->Id . "  " . $records[0]->Balance;
- 
+
  $payment = new Zuora_Payment();
  $payment->AccountId = $accountId;
  $payment->Amount = $amount;
@@ -431,27 +431,27 @@ function createAndApplyPayment($instance,$accountId){
  $payment->PaymentMethodId = $paymentMethodId;
  $payment->Type = 'Electronic';
  $payment->Status = 'Draft';
- 
+
  $result = $instance->create(array($payment));
  $paymentId = $result->result->Id;
- 
+
  $success1 = $result->result->Success;
  $msg = "Payment: ".($success1 ? "Success" : $result->result->errors->Code . " (" . $result->result->errors->Message.")");
- 
+
  $invoicePayment = new Zuora_InvoicePayment();
  $invoicePayment->Amount = $amount;
  $invoicePayment->InvoiceId = $invoiceId;
- $invoicePayment->PaymentId = $paymentId;  
+ $invoicePayment->PaymentId = $paymentId;
  $result = $instance->create(array($invoicePayment));
- 
+
  $success2 = $result->result->Success;
  $msg .=" -> InvoicePayment: ". ($success2 ?  "Success" : $result->result->errors->Code . " (" . $result->result->errors->Message.")");
 
  $payment = new Zuora_Payment();
  $payment->Id = $paymentId;
  $payment->Status = 'Processed';
- $result=$instance->update(array($payment));	
- $success3 = $result->result->Success;	
+ $result=$instance->update(array($payment));
+ $success3 = $result->result->Success;
  $msg .=" -> Payment Processed:". ($success3 ?  "Success" : $result->result->errors->Code . " (" . $result->result->errors->Message.")");
 
  print "\nCreate and Apply Payment: " . $msg;
@@ -462,21 +462,21 @@ function getProductRatePlan($instance,$productName){
   if ($result->result->size != 1){
   	print "No Product found with Name = '$productName'";
 		exit();
-  }		
+  }
   $productId = $result->result->records->Id;
-  
+
   $result = $instance->query("select Id,Name from ProductRatePlan where ProductId = '$productId'");
 	if ($result->result->size == 0){
 		print "No Product Rate Plan found with ProductId = '$productId'(Product Name = '$productName')";
 		exit();
   }
-	
+
 	if(is_array($result->result->records)){
 		$ProductRatePlan = $result->result->records[0];
 	}else{
 		$ProductRatePlan = $result->result->records;
 	}
-	
+
 	return $ProductRatePlan;
 }
 
@@ -485,102 +485,102 @@ function getProductRatePlanCharges($instance,$productRatePlanId){
   if ($result->result->size == 0){
   	print "No Product RatePlan Charge found with ProductRatePlanId = '$productRatePlanId'";
 		exit();
-  }		
-  
+  }
+
   $ProductRatePlanCharges = array();
   if(is_array($result->result->records)){
   	$ProductRatePlanCharges = $result->result->records;
   }else{
   	$ProductRatePlanCharges[] = $result->result->records;
   }
-  
-  return $ProductRatePlanCharges; 
+
+  return $ProductRatePlanCharges;
 }
 function newProductAmendment($instance,$newProductName,$subscriptionId){
 	$date = date('Y-m-d\TH:i:s');
-	
+
 	$amendment = new Zuora_Amendment();
 	$amendment->EffectiveDate = $date;
 	$amendment->Name = 'addproduct' . time();
 	$amendment->Status = 'Draft';
 	$amendment->SubscriptionId = $subscriptionId;
 	$amendment->Type = 'NewProduct';
-	
+
 	$result = $instance->create(array($amendment));
-	
+
 	$amendmentId = $result -> result -> Id;
-	
+
 	$rateplan = new Zuora_RatePlan();
 	$rateplan->AmendmentId = $amendmentId;
 	$rateplan->AmendmentType = 'NewProduct';
-	
+
 	$ProductRatePlan = getProductRatePlan($instance,$newProductName);
 	$rateplan->ProductRatePlanId = $ProductRatePlan->Id;
-	
+
 	$instance->create(array($rateplan));
-	
+
 	$amendment = new Zuora_Amendment();
 	$amendment->Id = $amendmentId;
 	$amendment->ContractEffectiveDate = $date;
-	
+
 	$amendment->Status = 'Completed';
-	
+
 	$result = $instance->update(array($amendment));
 	return $result;
 }
 
 function removeProductAmendment($instance,$ratePlanId,$subscriptionId){
 	$date = date('Y-m-d\TH:i:s');
-	
+
 	$amendment = new Zuora_Amendment();
 	$amendment->EffectiveDate = $date;
 	$amendment->Name = 'removeproduct' . time();
 	$amendment->Status = 'Draft';
 	$amendment->SubscriptionId = $subscriptionId;
 	$amendment->Type = 'RemoveProduct';
-	
+
 	$result = $instance->create(array($amendment));
-	
+
 	$amendmentId = $result -> result -> Id;
-	
+
 	$rateplan = new Zuora_RatePlan();
 	$rateplan->AmendmentId = $amendmentId;
 	$rateplan->AmendmentType = 'RemoveProduct';
 
 	$rateplan->AmendmentSubscriptionRatePlanId  = $ratePlanId;
-	
+
 	$instance->create(array($rateplan));
-	
+
 	$amendment = new Zuora_Amendment();
 	$amendment->Id = $amendmentId;
 	$amendment->ContractEffectiveDate = $date;
-	
+
 	$amendment->Status = 'Completed';
-	
+
 	$result = $instance->update(array($amendment));
 	return $result;
 }
 
 function cancelSubscriptionAmendment($instance,$subscriptionId){
 	$date = date('Y-m-d\TH:i:s');
-	
+
 	$amendment = new Zuora_Amendment();
 	$amendment->EffectiveDate = $date;
 	$amendment->Name = 'cancel' . time();
 	$amendment->Status = 'Draft';
 	$amendment->SubscriptionId = $subscriptionId;
 	$amendment->Type = 'Cancellation';
-	
+
 	$result = $instance->create(array($amendment));
-	
-	$amendmentId = $result -> result -> Id;	
-	
+
+	$amendmentId = $result -> result -> Id;
+
 	$amendment = new Zuora_Amendment();
 	$amendment->Id = $amendmentId;
 	$amendment->ContractEffectiveDate = $date;
-	
+
 	$amendment->Status = 'Completed';
-	
+
 	$result = $instance->update(array($amendment));
 	return $result;
 

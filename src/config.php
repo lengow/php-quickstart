@@ -2,20 +2,20 @@
 
 /*
  *    Copyright (c) 2010 Zuora, Inc.
- *    
- *    Permission is hereby granted, free of charge, to any person obtaining a copy of 
- *    this software and associated documentation files (the "Software"), to use copy, 
- *    modify, merge, publish the Software and to distribute, and sublicense copies of 
+ *
+ *    Permission is hereby granted, free of charge, to any person obtaining a copy of
+ *    this software and associated documentation files (the "Software"), to use copy,
+ *    modify, merge, publish the Software and to distribute, and sublicense copies of
  *    the Software, provided no fee is charged for the Software.  In addition the
  *    rights specified above are conditioned upon the following:
- *    
+ *
  *    The above copyright notice and this permission notice shall be included in all
  *    copies or substantial portions of the Software.
- *    
+ *
  *    Zuora, Inc. or any other trademarks of Zuora, Inc.  may not be used to endorse
  *    or promote products derived from this Software without specific prior written
  *    permission from Zuora, Inc.
- *    
+ *
  *    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *    FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
@@ -29,9 +29,8 @@
 
 $username = '<your username>';
 $password = '<your password>';
-$endpoint = 'https://www.zuora.com/apps/services/a/17.0';
+$endpoint = 'https://www.zuora.com/apps/services/a/76.0';
 
 $debug=true;
 $query_batch_size = 100;
-$wsdl='zuora.17.0.wsdl';
-?>
+$wsdl='zuora.a.76.0.wsdl';
